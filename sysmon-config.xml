@@ -1,0 +1,45 @@
+<!--
+  Sysmon config used by Get-ConnectionProcess (see Get-ConnectionProcess.ps1).
+  Logs to: Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
+
+  Install:        sysmon -accepteula -i sysmon-config.xml
+  Apply changes:  sysmon -c sysmon-config.xml
+  Show current:   sysmon -c
+  Uninstall:      sysmon -u
+-->
+<Sysmon schemaversion="4.91">
+  <HashAlgorithms>SHA256</HashAlgorithms>
+  <EventFiltering>
+    <!-- Event 1: every process start, so command lines survive after the process exits -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="exclude" />
+    </RuleGroup>
+    <!-- Event 3: every TCP and UDP connection, with the owning process -->
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="exclude" />
+    </RuleGroup>
+    <!-- Event 22: every DNS query made through the Windows resolver, with the asking process.
+         Sysmon's own reverse lookups (it fills in DestinationHostname on event 3) are left out. -->
+    <RuleGroup name="" groupRelation="or">
+      <DnsQuery onmatch="exclude">
+        <Image condition="is">C:\Windows\Sysmon64.exe</Image>
+      </DnsQuery>
+    </RuleGroup>
+    <!-- Everything else stays off -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessTerminate onmatch="include" />
+    </RuleGroup>
+    <RuleGroup name="" groupRelation="or">
+      <FileCreateTime onmatch="include" />
+    </RuleGroup>
+    <RuleGroup name="" groupRelation="or">
+      <DriverLoad onmatch="include" />
+    </RuleGroup>
+    <RuleGroup name="" groupRelation="or">
+      <ImageLoad onmatch="include" />
+    </RuleGroup>
+    <RuleGroup name="" groupRelation="or">
+      <FileCreate onmatch="include" />
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>
